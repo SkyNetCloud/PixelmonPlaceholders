@@ -19,9 +19,9 @@ public class RayTracingHelper {
 		Vector3d look = source.getUpVector(1f);
 		Vector3d end = start.add(look.x * distance, look.y * distance, look.z * distance);
 
-		RayTraceResult closestBlock = source.level.clipWithInteractionOverride(start, end, false, false, true);
+		RayTraceResult closestBlock = source.;
 		if (closestBlock != null) {
-			distance = closestBlock.hitVec.distanceTo(start);
+			distance = closestBlock.hitInfo.;
 		}
 
 		for (Entity entity : source.level.getEntities(source, source.getBoundingBox().contract(end.x, end.y, end.y).contract(1d, 1d, 1d), Predicates.and(NO_SPECTATORS, e -> e != null && e.canBeCollidedWith()))) {

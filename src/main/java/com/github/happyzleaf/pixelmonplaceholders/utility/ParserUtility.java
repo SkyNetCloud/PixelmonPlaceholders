@@ -3,13 +3,11 @@ package com.github.happyzleaf.pixelmonplaceholders.utility;
 import com.github.happyzleaf.pixelmonplaceholders.PPConfig;
 import com.mojang.datafixers.types.templates.CompoundList;
 import com.pixelmonmod.api.pokemon.PokemonSpecification;
+import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.TickHandler;
 import com.pixelmonmod.pixelmon.TimeHandler;
 import com.pixelmonmod.pixelmon.api.config.GeneralConfig;
-import com.pixelmonmod.pixelmon.api.pokemon.EggGroup;
-import com.pixelmonmod.pixelmon.api.pokemon.Element;
-import com.pixelmonmod.pixelmon.api.pokemon.Nature;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.pokemon.*;
 
 import com.pixelmonmod.pixelmon.api.pokemon.ability.Ability;
 import com.pixelmonmod.pixelmon.api.pokemon.drops.PokemonDropInformation;
@@ -28,6 +26,7 @@ import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonForms;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
 import com.pixelmonmod.pixelmon.api.util.ITranslatable;
+import com.pixelmonmod.pixelmon.api.util.helpers.RandomHelper;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.battles.attacks.specialAttacks.basic.HiddenPower;
 
@@ -292,7 +291,7 @@ public class ParserUtility {
 			case "egggroups":
 				return asReadableList(values, 1, stats.getEggGroups().toArray(new EggGroup[0]));
 			case "texturelocation":
-				return "pixelmon:" + ScreenHelper.getSpritePath(species, stats.getf(), stats.(TickHandler.rand), "", false);
+				return "pixelmon:" + ScreenHelper.getPokemonSprite();
 			case "move":
 				if (values.length > 1) {
 					try {
@@ -321,13 +320,14 @@ public class ParserUtility {
 		throw new NoValueException("Wrong input." + (expectedValues.length > 0 ? " Expected values: " + Arrays.toString(expectedValues) : ""));
 	}
 
-	public static boolean checkSpecies(String name, Pokemon pokemon, Species... species) throws NoValueException {
-		if (Arrays.stream(species).noneMatch(s -> s == pokemon.getSpecies())) {
+	public static boolean checkSpecies(String name, Pokemon pokemon, PixelmonSpecies... species) throws NoValueException {
+		if (Arrays.stream(species).noneMatch(s -> pokemon.isPokemon())) {
 			throw new NoValueException(String.format("Wrong input. '%s' can only be used by %s.", name, Arrays.toString(species)));
 		}
 
 		return true;
 	}
+
 
 	public static Object[] getAllAttackNames(Stats stats) {
 		return stats.getMoves().getAllMoves().stream().map(attack -> attack.getAttackType().getLocalizedName()).toArray();
@@ -568,7 +568,7 @@ public class ParserUtility {
 						throwWrongInput("clones");
 					}
 				case "laketrio":
-					if (checkSpecies("laketrio", pokemon, PixelmonSpecies.UXIE, PixelmonSpecies.MESPRIT, PixelmonSpecies.AZELF)) {
+					if (checkSpecies("laketrio", pokemon, sp, PixelmonSpecies.MESPRIT, PixelmonSpecies.AZELF)) {
 						if (values.length > 1 && values[1].equals("rubies")) {
 							LakeTrioStats lakeTrio = (LakeTrioStats) pokemon.getExtraStats();
 							if (values.length > 2) {
@@ -580,13 +580,13 @@ public class ParserUtility {
 								}
 							}
 
-							return lakeTrio.numEnchanted + "/" + GeneralConfig.lakeTrioMaxEnchants;
+							return lakeTrio.numEnchanted + "/" + Pixelmon;
 						}
 
 						throwWrongInput("rubies");
 					}
 				case "meltan":
-					if (checkSpecies("meltan", pokemon, EnumSpecies.Meltan)) {
+					if (checkSpecies("meltan", pokemon, PixelmonSpecies.MELTAN)) {
 						MeltanStats meltan = (MeltanStats) pokemon.getExtraStats();
 						if (values.length > 1 && values[1].equals("oressmelted")) {
 							if (values.length > 2) {
