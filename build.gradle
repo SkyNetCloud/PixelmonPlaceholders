@@ -28,6 +28,10 @@ minecraft {
 repositories {
     mavenCentral()
     maven {
+        name = 'sponge-repo'
+        url = 'https://repo.spongepowered.org/maven'
+    }
+    maven {
         url 'https://jitpack.io'
     }
     ivy {
@@ -44,6 +48,7 @@ repositories {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.34'
+    compileOnly 'org.spongepowered:spongeapi:' + spongeVersion
     compileOnly 'com.github.rojo8399:PlaceholderAPI:4.5.1'
     compileOnly 'pixelmon:Pixelmon-1.16.5-' + pixelmonVersion + '-server:' + pixelmonVersion
 }

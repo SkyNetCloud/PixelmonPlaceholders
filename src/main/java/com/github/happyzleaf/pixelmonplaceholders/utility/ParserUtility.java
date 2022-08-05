@@ -6,6 +6,7 @@ import com.pixelmonmod.api.pokemon.PokemonSpecification;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.TickHandler;
 import com.pixelmonmod.pixelmon.TimeHandler;
+import com.pixelmonmod.pixelmon.api.config.BreedingConfig;
 import com.pixelmonmod.pixelmon.api.config.GeneralConfig;
 import com.pixelmonmod.pixelmon.api.pokemon.*;
 
@@ -37,6 +38,8 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 
 import com.pixelmonmod.pixelmon.items.HeldItem;
 import me.rojo8399.placeholderapi.NoValueException;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 
 import net.minecraft.nbt.CompoundNBT;
@@ -498,7 +501,7 @@ public class ParserUtility {
 					if (pokemon.isEgg()) {
 						location = GuiResources.getEggSprite(pokemon.getSpecies(), pokemon.getEggCycles());
 					} else {
-						location = GuiResources.getPokemonSprite(pokemon);
+						location = ScreenHelper.getPokemonSprite(pokemon, Minecraft.getInstance());
 					}
 					return location.toString().replace("textures/", "").replace(".png", "");
 				}
@@ -539,12 +542,13 @@ public class ParserUtility {
 					if (!pokemon.isEgg())
 						throw new NoValueException("The pixelmon is not in an egg.");
 					if (values.length > 1) {
-						int current = pokemon.getEggCycles() * PixelmonConfig.stepsPerEggCycle + pokemon.getEggSteps();
+						int current = pokemon.getEggCycles() * pokemon.getEggSteps();
 						switch (values[1]) {
 							case "current":
 								return current;
 							case "needed":
-								return pokemon.getBaseStats().getEggCycles() * PixelmonConfig.stepsPerEggCycle - current;
+								return pokemon.getStats().getPokemon().getEg
+						//pokemon.getBaseStats().getEggCycles() * GeneralConfig.getS - current;
 						}
 					}
 
@@ -574,7 +578,7 @@ public class ParserUtility {
 							if (values.length > 2) {
 								switch (values[2]) {
 									case "used":
-										return lakeTrio.numEnchanted == GeneralConfig.lakeTrioMaxEnchants;
+										return lakeTrio.numEnchanted == GeneralConfig.getLakeTrioMaxEnchants();
 									case "total":
 										return lakeTrio.numEnchanted;
 								}
