@@ -20,7 +20,7 @@ import java.io.File;
 		description = "Provides placeholder's support for Reforged.",
 		url = "https://www.happyzleaf.com/", authors = "happyzleaf",
 		dependencies = {
-				@Dependency(id = "pixelmon", version = "8.3.1"),
+				@Dependency(id = "pixelmon", version = "9.0.6"),
 				@Dependency(id = "placeholderapi", version = "[4.4,)"),
 				@Dependency(id = "entity-particles", version = "2.1", optional = true)
 		})

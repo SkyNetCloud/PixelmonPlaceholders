@@ -1,17 +1,17 @@
 package com.github.happyzleaf.pixelmonplaceholders;
 
 import com.github.happyzleaf.pixelmonplaceholders.utility.RayTracingHelper;
-import com.pixelmonmod.pixelmon.Pixelmon;
-import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
+import com.pixelmonmod.pixelmon.api.pokemon.species.Pokedex;
+import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
+import com.pixelmonmod.pixelmon.api.pokemon.species.Stats;
+import com.pixelmonmod.pixelmon.api.storage.*;
+
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
-import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
-import com.pixelmonmod.pixelmon.enums.EnumSpecies;
-import com.pixelmonmod.pixelmon.enums.forms.IEnumForm;
-import com.pixelmonmod.pixelmon.pokedex.Pokedex;
+import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.spawning.PixelmonSpawning;
-import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
 import me.rojo8399.placeholderapi.*;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
@@ -43,16 +43,17 @@ public class Placeholders {
 
 	@Placeholder(id = "trainer")
 	public Object trainer(@Source Player player, @Token String token) throws NoValueException {
-		PlayerPartyStorage party = Pixelmon.storageManager.getParty((EntityPlayerMP) player);
+		PlayerPartyStorage party = StorageProxy.getParty((ServerPlayerEntity) player);
+		party.set(party.getSelectedSlot(), null);
 		String[] values = token.split("_");
 		if (values.length > 0) {
 			switch (values[0]) {
 				case "dexcount":
-					return party.pokedex.countCaught();
+					return party.playerPokedex.countCaught();
 				case "dexpercentage":
-					return formatDouble(party.pokedex.countCaught() * 100 / (double) Pokedex.pokedexSize);
+					return formatDouble(party.playerPokedex.countCaught() * 100 / (double) Pokedex.pokedexSize);
 				case "seencount":
-					return party.pokedex.countSeen();
+					return party.playerPokedex.countSeen();
 				case "wins":
 					return party.stats.getWins();
 				case "losses":
@@ -60,8 +61,6 @@ public class Placeholders {
 				case "wlratio": {
 					return formatDouble((double) party.stats.getWins() / Math.max(party.stats.getLosses(), 1));
 				}
-				case "balance":
-					return formatBigNumbers(party.getMoney());
 			}
 		} else {
 			throw new NoValueException("Not enough arguments.");
@@ -72,8 +71,8 @@ public class Placeholders {
 	@Placeholder(id = "party")
 	public Object party(@Source Entity entity, @Token String token) throws NoValueException {
 		PartyStorage storage;
-		if (entity instanceof EntityPlayerMP) {
-			storage = Pixelmon.storageManager.getParty((EntityPlayerMP) entity);
+		if (entity instanceof PlayerEntity) {
+			storage = StorageProxy.getParty((ServerPlayerEntity) entity);
 		} else if (entity instanceof NPCTrainer) {
 			storage = ((NPCTrainer) entity).getPokemonStorage();
 		} else {
@@ -101,11 +100,11 @@ public class Placeholders {
 	@Placeholder(id = "raytrace")
 	public Object rayTrace(@Source Player player, @Token @Nullable String token) throws NoValueException {
 		net.minecraft.entity.Entity hit = RayTracingHelper.getLookedEntity((net.minecraft.entity.Entity) player, PPConfig.rayTraceDistance).orElse(null);
-		if (!(hit instanceof EntityPixelmon)) {
+		if (!(hit instanceof PixelmonEntity)) {
 			return PPConfig.noneText;
 		}
 
-		return parsePokemonInfo(player, ((EntityPixelmon) hit).getPokemonData(), token == null ? new String[0] : token.split("_"));
+		return parsePokemonInfo(player, ((PixelmonEntity) hit).getPokemon(), token == null ? new String[0] : token.split("_"));
 	}
 
 	@Placeholder(id = "pixelmon")
@@ -114,7 +113,7 @@ public class Placeholders {
 		if (values.length > 0) {
 			switch (values[0]) {
 				case "dexsize":
-					return EnumSpecies.values().length;
+					return Pokedex.pokedexSize;
 				case "nextlegendary":
 					return TimeUnit.MILLISECONDS.toSeconds(PixelmonSpawning.legendarySpawner.nextSpawnTime - System.currentTimeMillis());
 				case "nextmegaboss":
@@ -125,18 +124,11 @@ public class Placeholders {
 		return throwWrongInput("dexsize", "nextlegendary", "nextmegaboss");
 	}
 
-	private static EnumSpecies testName(String name) {
-		EnumSpecies species = EnumSpecies.getFromNameAnyCaseNoTranslate(name);
-		if (species != null) {
-			return species;
-		}
-
-		try {
-			return EnumSpecies.getFromDex(Integer.parseInt(name));
-		} catch (NumberFormatException e) {
-			return null;
-		}
+	private static Species testName(String name) {
+		return null;
 	}
+
+
 
 	@Placeholder(id = "pokedex")
 	public Object pokedex(@Token String token) throws NoValueException {
@@ -145,8 +137,8 @@ public class Placeholders {
 			throw new NoValueException("Not enough arguments.");
 		}
 
-		EnumSpecies species = testName(values[0]);
-		IEnumForm form = null;
+		Species species = testName(values[0]);
+		Stats form = null;
 		if (species == null) {
 			int separator = values[0].lastIndexOf('-');
 			if (separator == -1) {
@@ -160,12 +152,12 @@ public class Placeholders {
 			}
 
 			String suffix = values[0].substring(separator);
-			form = species.getPossibleForms(false).stream().filter(f -> f.getFormSuffix().equals(suffix)).findAny().orElse(null);
+			form = species.getForms(false).stream().filter(f -> f.getName().equals(suffix)).findAny().orElse(null);
 			if (form == null) {
 				throw new NoValueException(String.format("The suffix '%s' was not recognized.", suffix));
 			}
 
-			if (form.isDefaultForm()) {
+			if (form.isDefault()) {
 				form = null;
 			}
 		}

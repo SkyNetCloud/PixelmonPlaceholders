@@ -20,17 +20,13 @@ group = modGroup
 
 minecraft {
 
-    mappings channel: project.mcpChannel, version: project.mcpVersion
+    mappings channel: 'official', version: '1.16.5'
     accessTransformer = file('src/main/resources/META-INF/placeholders_at.cfg')
 
 }
 
 repositories {
     mavenCentral()
-    maven {
-        name = 'sponge-repo'
-        url = 'https://repo.spongepowered.org/maven'
-    }
     maven {
         url 'https://jitpack.io'
     }
@@ -47,10 +43,9 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:' + forgeVersion
-    compileOnly 'org.spongepowered:spongeapi:' + spongeVersion
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.34'
     compileOnly 'com.github.rojo8399:PlaceholderAPI:4.5.1'
-    compileOnly 'pixelmon:Pixelmon-1.12.2-' + pixelmonVersion + '-server:' + pixelmonVersion
+    compileOnly 'pixelmon:Pixelmon-1.16.5-' + pixelmonVersion + '-server:' + pixelmonVersion
 }
 
 blossom {
